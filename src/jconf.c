@@ -163,6 +163,10 @@ read_jconf(const char *file)
     long pos = ftell(f);
     fseek(f, 0, SEEK_SET);
 
+    if (pos < 0) {
+        FATAL("Invalid config path.");
+    }
+
     if (pos >= MAX_CONF_SIZE) {
         FATAL("Too large config file.");
     }
@@ -257,6 +261,10 @@ read_jconf(const char *file)
                 check_json_value_type(value, json_boolean,
                         "invalid config file: option 'reuse_port' must be a boolean");
                 conf.reuse_port = value->u.boolean;
+            } else if (strcmp(name, "disable_sni") == 0) {
+                check_json_value_type(value, json_boolean,
+                        "invalid config file: option 'disable_sni' must be a boolean");
+                conf.disable_sni = value->u.boolean;
             } else if (strcmp(name, "auth") == 0) {
                 FATAL("One time auth has been deprecated. Try AEAD ciphers instead.");
             } else if (strcmp(name, "nofile") == 0) {
@@ -309,6 +317,12 @@ read_jconf(const char *file)
                 check_json_value_type(value, json_boolean,
                     "invalid config file: option 'ipv6_first' must be a boolean");
                 conf.ipv6_first = value->u.boolean;
+#ifdef HAS_SYSLOG
+            } else if (strcmp(name, "use_syslog") == 0) {
+                check_json_value_type(value, json_boolean,
+                    "invalid config file: option 'use_syslog' must be a boolean");
+                use_syslog = value->u.boolean;
+#endif
             }
         }
     } else {
